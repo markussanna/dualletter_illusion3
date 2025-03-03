@@ -6,6 +6,13 @@ from pathlib import Path
 import time
 from streamlit_stl import stl_from_file
 
+if 'text1' not in st.session_state:
+    st.session_state.text1 = "STOP"
+if 'text2' not in st.session_state:
+    st.session_state.text2 = "WORK"
+
+SPECIAL_CHARS = ['♥','♦','♣','♠','♪','♫','►','◄']
+
 def get_fonts_path():
     """Get the absolute path to the resource, works for both development and PyInstaller bundle."""
     try:
@@ -99,9 +106,23 @@ if __name__ == "__main__":
     col1, col2, col3 = st.columns(3)
     # Input type
     with col1:
-        text1 = st.text_input('First text', value="STOP")
+        text1 = st.text_input('First text', value=st.session_state.text1, key='text1_input')
+        st.session_state.text1 = text1  # Update session state
+        special_chars1 = st.columns(8)
+        for i, char in enumerate(SPECIAL_CHARS):
+            with special_chars1[i]:
+                if st.button(char, key=f"btn1_{char}"):
+                    st.session_state.text1 += char
+                    st.rerun()
     with col2:
-        text2 = st.text_input('Second text', value="WORK")
+        text2 = st.text_input('Second text', value=st.session_state.text2, key='text2_input')
+        st.session_state.text2 = text2  # Update session state
+        special_chars2 = st.columns(8)
+        for i, char in enumerate(SPECIAL_CHARS):
+            with special_chars2[i]:
+                if st.button(char, key=f"btn2_{char}"):
+                    st.session_state.text2 += char
+                    st.rerun()
     with col3:
         fontsize = st.number_input('Font size', min_value=1, max_value=None, value=20)
         extr = fontsize*2 # extrude letter

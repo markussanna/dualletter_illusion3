@@ -4,14 +4,14 @@ import os
 import sys
 from pathlib import Path
 import time
-from stlcreation.heartfile import create_hollow_heart, create_text_object, create_heart_with_text
+from stlcreation.heartfile import  create_heart_with_text, create_text_object_with_tunable_params,test_parameters
 from streamlit_stl import stl_from_file
 
 # Initialize session state
 if 'text1' not in st.session_state:
-    st.session_state.text1 = "STOP"
+    st.session_state.text1 = "üäöij"
 if 'text2' not in st.session_state:
-    st.session_state.text2 = "WORK"
+    st.session_state.text2 = "üäöij"
 if 'rendering_method' not in st.session_state:
     st.session_state.rendering_method = "Regular"
 if 'render_requested' not in st.session_state:
@@ -110,9 +110,9 @@ def heartLampRendering(text1, text2, fontPath='',
     heart_height=500, 
     thickness=10, 
     height=15,
-    text="Tanja", 
+    text=text1, 
     font_size=100, 
-    font_name="Brush Script",
+    font_path=fontPath,
     text_height=10,
     text_offset=0.1
     )
@@ -123,7 +123,7 @@ def heartLampRendering(text1, text2, fontPath='',
     # print(f"Length (X): {length}, Width (Y): {width}, Height (Z): {height}")
 
     #show_object(heart_with_text, name="heart")
-
+    test_parameters()
     
     # Export files
     cq.exporters.export(heart_with_text, f'file_display.stl')

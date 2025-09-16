@@ -599,3 +599,4 @@ def test_parameters():
         cq.exporters.export(text_obj, f"test_params_{i+1}.stl")
         print(f"Exported to test_params_{i+1}.stl")
 
+   

@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Streamlit: Debug App",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                "run",
+                "app/app.py",
+                "--server.enableCORS",
+                "false",
+                "--server.enableXsrfProtection",
+                "false",
+                "--server.port",
+                "8502",
+                "--server.address",
+                "0.0.0.0"
+            ],
+            "console": "integratedTerminal"
+        }
+    ]
+}

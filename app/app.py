@@ -4,12 +4,22 @@ import os
 import sys
 from pathlib import Path
 import time
+from stlcreation.heartfile import create_hollow_heart, create_text_object, create_heart_with_text
 from streamlit_stl import stl_from_file
 
+# Initialize session state
 if 'text1' not in st.session_state:
     st.session_state.text1 = "STOP"
 if 'text2' not in st.session_state:
     st.session_state.text2 = "WORK"
+if 'rendering_method' not in st.session_state:
+    st.session_state.rendering_method = "Regular"
+if 'render_requested' not in st.session_state:
+    st.session_state.render_requested = False
+if 'rendering_complete' not in st.session_state:
+    st.session_state.rendering_complete = False
+if 'render_start_time' not in st.session_state:
+    st.session_state.render_start_time = None
 
 SPECIAL_CHARS = ['♥','♦','♣','♠','♪','♫','►','◄']
 
@@ -36,12 +46,12 @@ def letter(let, angle, fontPath=""):
         )
     return wp
 
-
 def dual_text(text1, text2, fontPath='', 
               save='stl', 
               b_h=2, b_pad=2, b_fil_per=0.8, space_per=0.3, 
               extrab_h=1, extrab_rad=2, extrab_mask='',
               export_name='file'):
+    print(f"DEBUG: dual_text called with text1='{text1}', text2='{text2}'")
     """Generate the dual letter illusion from the two text and save it"""
     space = fontsize*space_per # spece between letter
     res = cq.Assembly() # start assembly
@@ -82,6 +92,49 @@ def dual_text(text1, text2, fontPath='',
     cq.exporters.export(res, f'file_display.stl')
     cq.exporters.export(res, f"{export_name}.{save}")
 
+def heartLampRendering(text1, text2, fontPath='', 
+                      save='stl', 
+                      b_h=2, b_pad=2, b_fil_per=0.8, space_per=0.3, 
+                      extrab_h=1, extrab_rad=2, extrab_mask='',
+                      export_name='file'):
+    print(f"DEBUG: heartLampRendering called with text1='{text1}', text2='{text2}'")
+    """Generate a heart-shaped lamp with dual text illusion"""
+    space = fontsize*space_per
+  #  res = cq.Assembly()
+    last_ymax = 0
+    
+    # Create heart-shaped base first
+   # Create heart-shaped base first
+    
+    heart_with_text = create_heart_with_text(
+    heart_height=500, 
+    thickness=10, 
+    height=15,
+    text="Tanja", 
+    font_size=100, 
+    font_name="Brush Script",
+    text_height=10,
+    text_offset=0.1
+    )
+    # bb = heart_with_text.val().BoundingBox()
+    # length = bb.xlen
+    # width = bb.ylen
+    # height = bb.zlen
+    # print(f"Length (X): {length}, Width (Y): {width}, Height (Z): {height}")
+
+    #show_object(heart_with_text, name="heart")
+
+    
+    # Export files
+    cq.exporters.export(heart_with_text, f'file_display.stl')
+    cq.exporters.export(heart_with_text, f"{export_name}.{save}")
+
+# Callback function for render button
+def on_render_click():
+    print(f"DEBUG: Render button clicked, setting requested=True, complete=False")
+    st.session_state.render_requested = True
+    st.session_state.rendering_complete = False
+    st.session_state.render_start_time = time.time()
 
 if __name__ == "__main__":
     st.set_page_config(page_title="TextTango", page_icon="random", layout="wide", initial_sidebar_state="collapsed")
@@ -179,23 +232,58 @@ if __name__ == "__main__":
         with col3:
             extrab_rad = st.slider('Radius', 0.0, float(fontsize), step=0.1, value=2.0)
 
-
     col1, _, _ = st.columns(3)
     with col1:
         out = st.selectbox('Output file type', ['stl', 'step'])
             
-
-    if st.button('Render'):
-        start = time.time()
+    rendering_method = st.radio(
+        "Rendering Method:",
+        ["Regular", "Heart Lamp"],
+        index=0 if st.session_state.rendering_method == "Regular" else 1,
+        horizontal=True,
+        help="Choose between standard rendering or heart-shaped lamp design",
+        key="rendering_method_radio"
+    )
+    
+    # Update session state when selection changes
+    if rendering_method != st.session_state.rendering_method:
+        print(f"DEBUG: Rendering method changed from {st.session_state.rendering_method} to {rendering_method}")
+        st.session_state.rendering_method = rendering_method
+     # ADD DEBUG PRINT RIGHT HERE:
+    print(f"DEBUG: Current state - requested={st.session_state.render_requested}, complete={st.session_state.rendering_complete}, method={st.session_state.rendering_method}")    
+    # Render button with callback
+    if st.button('Render', on_click=on_render_click):
+        pass  # The callback handles the action
+        
+    # Only render if the button was clicked and rendering is not complete
+    if st.session_state.render_requested and not st.session_state.rendering_complete:
+        print(f"DEBUG: Starting render, method={st.session_state.rendering_method}, requested={st.session_state.render_requested}, complete={st.session_state.rendering_complete}")
         with st.spinner('Wait for it...'):
-            dual_text(text1, text2, fontPath=str(font_path), save=out, 
-                      b_h=b_h, b_pad=b_pad, b_fil_per=b_fil_per, space_per=space,
-                        extrab_h=extrab_h, extrab_rad=extrab_rad, extrab_mask=extra_mask)
-        end = time.time()
+            # Use the session state value
+            if st.session_state.rendering_method == "Regular":
+                print("DEBUG: Calling dual_text")
+                dual_text(text1, text2, fontPath=str(font_path), save=out, 
+                          b_h=b_h, b_pad=b_pad, b_fil_per=b_fil_per, space_per=space,
+                          extrab_h=extrab_h, extrab_rad=extrab_rad, extrab_mask=extra_mask)
+            else:  # Heart Lamp method
+                print("DEBUG: Calling heartLampRendering")
+                heartLampRendering(text1, text2, fontPath=str(font_path), save=out, 
+                                  b_h=b_h, b_pad=b_pad, b_fil_per=b_fil_per, space_per=space,
+                                  extrab_h=extrab_h, extrab_rad=extrab_rad, extrab_mask=extra_mask)
+        
+        # Mark rendering as complete
+        st.session_state.rendering_complete = True
+        st.session_state.render_requested = False
+        print(f"DEBUG: Render complete, setting requested=False, complete=True")
+        # Calculate rendering time
+        end_time = time.time()
+        render_time = int(end_time - st.session_state.render_start_time)
+        
+        # Show results
         if f'file.{out}' not in os.listdir():
             st.error('The program was not able to generate the mesh.', icon="🚨")
         else:
-            st.success(f'Rendered in {int(end-start)} seconds', icon="✅")
+            st.success(f'Rendered in {render_time} seconds', icon="✅")
             with open(f'file.{out}', "rb") as file:
                 btn = st.download_button(
                         label=f"Download {out}",
@@ -208,4 +296,3 @@ if __name__ == "__main__":
 
             # stl preview
             stl_from_file('file_display.stl')
-
